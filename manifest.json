@@ -1,0 +1,12 @@
+{
+  "name": "view-as-json-plugin",
+  "id": "123456",
+  "main": "./main.js",
+  "ui": "./index.html",
+  "menu": [
+    {
+      "name": "Main",
+      "command": "main"
+    }
+  ]
+}

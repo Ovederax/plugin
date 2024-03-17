@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pixso Login</title>
+  <style>
+    button {
+      min-width: 80px;
+      margin-right: 12px;
+      padding: 4px 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h4>Pixso Plugin</h4>
+  <div>
+      <button id="process">Process</button>
+      <button id="download">Download</button>
+      <button id="clear">Clear</button>
+  </div>
+	<p id="console"></p>
+  </div>
+  <script>
+    const sendBtn = document.querySelector("#process")
+    const downloadBtn = document.querySelector("#download")
+    const clearBtn = document.querySelector("#clear")
+    const element = document.querySelector("#console")
+
+    const download = (data, filename, type) => {
+      const file = new Blob([data], {type: type});
+      if (window.navigator.msSaveOrOpenBlob) // IE10+
+        window.navigator.msSaveOrOpenBlob(file, filename);
+      else { // Others
+        const a = document.createElement("a"),
+                url = URL.createObjectURL(file);
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function() {
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        }, 0);
+      }
+    }
+
+    const getStrForObj = (obj) => {
+      return JSON.stringify(obj, null, 2)
+          .replaceAll('  ', '&nbsp;&nbsp;&nbsp;&nbsp;')
+          .replaceAll('\n', '<br>')
+    };
+
+    const logOnce = (val) => {
+      const text = typeof val === 'string' ? val : getStrForObj(val)
+      element.innerHTML = element.innerHTML + "<br>" + text
+    }
+
+    const log = (...arr) => arr.forEach(logOnce)
+
+    clearBtn.onclick = () => { element.innerHTML = "" }
+
+    sendBtn.onclick = () => { parent.postMessage({ pluginMessage: 'GET_SELECTION' }, '*') }
+
+    onmessage = (event) => {
+      const { result, message } = event.data.pluginMessage
+
+      result.forEach((it) => {
+        const { type, name, component, componentProperties , children } = it
+
+        if(component === 'Button') {
+          log({
+            type: component,
+            value: componentProperties.text.value
+          })
+        } else {
+          log(type)
+          log("name: " + name)
+          if(children) {
+            log(children)
+          }
+          if(component) {
+            log("type: " + component)
+          }
+          if(componentProperties) {
+            log(componentProperties)
+          }
+        }
+      })
+    }
+  </script>
+</body>
+</html>
